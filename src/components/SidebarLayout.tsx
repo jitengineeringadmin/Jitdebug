@@ -4,26 +4,42 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Activity, AlertCircle, LayoutDashboard, Settings, Users, FileText, LogOut } from "lucide-react";
+import { api } from "@/src/lib/api";
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
-    const token = localStorage.getItem("token");
-    if (!token && pathname !== "/login") {
-      router.push("/login");
+    if (pathname === "/login") {
+      setLoading(false);
+      return;
     }
+
+    api.get("/auth/me")
+      .then((res) => {
+        setUser(res.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        router.push("/login");
+      });
   }, [pathname, router]);
 
   if (!mounted) return null;
   if (pathname === "/login") return <>{children}</>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-400">Loading...</div>;
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } finally {
+      router.push("/login");
+    }
   };
 
   const navItems = [
@@ -63,6 +79,10 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="p-4 border-t border-zinc-800">
+          <div className="mb-4 px-3">
+            <p className="text-sm font-medium text-white">{user?.email}</p>
+            <p className="text-xs text-zinc-500">{user?.role}</p>
+          </div>
           <button
             onClick={handleLogout}
             className="flex w-full items-center px-3 py-2 text-sm font-medium text-zinc-400 rounded-md hover:bg-zinc-800/50 hover:text-white transition-colors"

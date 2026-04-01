@@ -69,3 +69,20 @@ export const Badge = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
   <div ref={ref} className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", className)} {...props} />
 ))
 Badge.displayName = "Badge"
+
+export function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose: () => void, title: string, children: React.ReactNode }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg w-full max-w-lg overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b border-zinc-800">
+          <h2 className="text-lg font-semibold text-white">{title}</h2>
+          <button onClick={onClose} className="text-zinc-400 hover:text-white">&times;</button>
+        </div>
+        <div className="p-4">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}

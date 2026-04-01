@@ -9,16 +9,19 @@ export default function Login() {
   const [email, setEmail] = useState("super@jitdebug.com");
   const [password, setPassword] = useState("password123");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
-      const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.accessToken);
+      await api.post("/auth/login", { email, password });
       router.push("/");
     } catch (err) {
       setError("Invalid credentials");
+      setLoading(false);
     }
   };
 
@@ -51,8 +54,8 @@ export default function Login() {
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
-              Sign In
+            <Button type="submit" disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+              {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </CardContent>

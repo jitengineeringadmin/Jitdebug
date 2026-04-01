@@ -3,6 +3,7 @@ import { AppModule } from './src/api/app.module';
 import next from 'next';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const dev = process.env.NODE_ENV !== 'production';
@@ -12,10 +13,15 @@ async function bootstrap() {
   await nextApp.prepare();
 
   const server = express();
+  server.use(cookieParser());
+  
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
   
   app.setGlobalPrefix('api');
-  app.enableCors();
+  app.enableCors({
+    origin: process.env.APP_URL || 'http://localhost:3000',
+    credentials: true,
+  });
   await app.init();
 
   server.all('*', (req, res) => {

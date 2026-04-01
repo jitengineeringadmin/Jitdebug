@@ -6,6 +6,16 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   findAll(workspaceId: string) {
-    return this.prisma.user.findMany({ where: { workspaceId }, select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true } });
+    return this.prisma.user.findMany({
+      where: { workspaceId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      }
+    });
   }
 }

@@ -29,6 +29,6 @@ export class IncidentsController {
 
   @Post(':id/notes')
   addNote(@Param('id') id: string, @Body() body: any, @Request() req: any) {
-    return this.incidentsService.addNote(id, body.content, req.user.userId);
+    return this.incidentsService.addNote(id, body.content, req.user.userId, req.user.workspaceId);
   }
 }

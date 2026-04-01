@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { TestResult, LogLevel } from '../../lib/types';
 
 @Injectable()
 export class TestRunsService {
@@ -10,25 +11,26 @@ export class TestRunsService {
   }
 
   async create(data: any, workspaceId: string, userId: string) {
-    // Simulate a test run
+    const target = await this.prisma.workflowTarget.findFirst({ where: { id: data.workflowTargetId, workspaceId } });
+    if (!target) throw new NotFoundException('Workflow target not found');
+
     const testRun = await this.prisma.testRun.create({
       data: {
         workspaceId,
-        workflowTargetId: data.workflowTargetId,
+        workflowTargetId: target.id,
         triggeredByUserId: userId,
         type: data.type || 'PING',
         status: 'RUNNING',
       }
     });
 
-    // Simulate async execution
     setTimeout(async () => {
       const success = Math.random() > 0.3;
       await this.prisma.testRun.update({
         where: { id: testRun.id },
         data: {
           status: 'COMPLETED',
-          result: success ? 'SUCCESS' : 'FAILED',
+          result: success ? TestResult.SUCCESS : TestResult.FAILED,
           finishedAt: new Date(),
           durationMs: Math.floor(Math.random() * 500) + 50,
         }
@@ -37,9 +39,9 @@ export class TestRunsService {
       await this.prisma.logEvent.create({
         data: {
           workspaceId,
-          workflowTargetId: data.workflowTargetId,
+          workflowTargetId: target.id,
           testRunId: testRun.id,
-          level: success ? 'INFO' : 'ERROR',
+          level: success ? LogLevel.INFO : LogLevel.ERROR,
           message: success ? 'Test run completed successfully' : 'Test run failed due to simulated error',
         }
       });
