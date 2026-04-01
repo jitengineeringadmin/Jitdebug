@@ -1,19 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-function fixFiles(dir) {
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-    if (fs.statSync(fullPath).isDirectory()) {
-      fixFiles(fullPath);
-    } else if (fullPath.endsWith('.ts') || fullPath.endsWith('.tsx')) {
-      let content = fs.readFileSync(fullPath, 'utf8');
-      content = content.replace(/@Request\(\) req\)/g, '@Request() req: any)');
-      content = content.replace(/@Request\(\) req \{/g, '@Request() req: any) {');
-      fs.writeFileSync(fullPath, content);
-    }
-  }
-}
+const apiSrc = 'apps/api/src/api';
+const dest = 'apps/api/src';
 
-fixFiles(path.join(__dirname, 'src'));
+if (fs.existsSync(apiSrc)) {
+  const files = fs.readdirSync(apiSrc);
+  for (const file of files) {
+    fs.renameSync(path.join(apiSrc, file), path.join(dest, file));
+  }
+  fs.rmdirSync(apiSrc);
+}

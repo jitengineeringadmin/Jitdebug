@@ -4,51 +4,50 @@ JIT Debug is a professional B2B SaaS platform for managing debug workflows, inci
 
 ## Architecture
 
-- **Monorepo**: Single repository containing both frontend and backend.
-- **Frontend**: Next.js 15 (App Router), Tailwind CSS v4, shadcn/ui.
-- **Backend**: NestJS, Prisma ORM.
-- **Database**: SQLite (for local development/preview), easily migratable to PostgreSQL.
-- **Auth**: JWT with HttpOnly cookies and Refresh Tokens.
+This project is structured as a **monorepo** using npm workspaces.
 
-## Getting Started
+- **`apps/api`**: NestJS backend. Provides RESTful APIs, handles authentication, and connects to PostgreSQL via Prisma.
+- **`apps/web`**: Next.js 15 App Router frontend. Provides the user interface, styled with Tailwind CSS and shadcn/ui.
+- **`packages/shared`**: Shared TypeScript definitions, enums, and DTOs used by both frontend and backend.
 
-### Prerequisites
-- Node.js 20+
-- npm or pnpm
+## Prerequisites
 
-### Setup
+- Node.js (v20+)
+- Docker & Docker Compose (for PostgreSQL)
 
-1. Copy the environment variables:
+## Local Development Setup
+
+1. **Start the database**
    ```bash
-   cp .env.example .env
+   docker-compose up -d
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. Setup the database:
+3. **Build shared packages**
    ```bash
-   npm run prisma:push
+   npm run build -w packages/shared
+   ```
+
+4. **Apply database migrations and seed data**
+   ```bash
+   npm run prisma:migrate
    npm run seed
    ```
 
-4. Start the development server:
+5. **Start the development servers**
    ```bash
    npm run dev
    ```
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:3001/api
 
-The application will be available at `http://localhost:3000`.
+## Seed Credentials
 
-### Default Credentials (from seed)
-- **Super Admin**: `super@jitdebug.com` / `password123`
-- **Admin**: `admin@jitdebug.com` / `password123`
-- **Analyst**: `analyst@jitdebug.com` / `password123`
-
-## Project Structure
-- `src/api`: NestJS backend application.
-- `src/app`: Next.js frontend application.
-- `src/components`: Shared React components.
-- `src/lib`: Shared utilities.
-- `prisma`: Database schema and seed scripts.
+The database is seeded with the following users (password for all is `password123`):
+- `super@jitdebug.com` (Super Admin)
+- `admin@jitdebug.com` (Admin)
+- `analyst@jitdebug.com` (Analyst)

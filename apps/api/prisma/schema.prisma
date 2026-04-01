@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+enum WorkflowStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+  ERROR
+}
+
+enum IncidentSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IncidentStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TestResult {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  DEBUG
+}
+
+enum ProjectProvider {
+  GITHUB
+  GITLAB
+  BITBUCKET
+}
+
+enum SyncStatus {
+  PENDING
+  IN_PROGRESS
+  SUCCESS
+  FAILED
+}
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  targets   WorkflowTarget[]
+  incidents Incident[]
+  testRuns  TestRun[]
+  projects  Project[]
+}
+
+model User {
+  id           String    @id @default(uuid())
+  workspaceId  String
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         Role      @default(VIEWER)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  refreshTokens RefreshToken[]
+  reportedIncidents Incident[] @relation("Reporter")
+  assignedIncidents Incident[] @relation("Assignee")
+  incidentNotes IncidentNote[]
+  testRuns      TestRun[]
+  auditEvents   AuditEvent[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id              String   @id @default(uuid())
+  workspaceId     String
+  workspace       Workspace @relation(fields: [workspaceId], references: [id])
+  name            String
+  slug            String   @unique
+  description     String?
+  status          String   @default("ACTIVE")
+  provider        ProjectProvider @default(GITHUB)
+  defaultBranch   String   @default("main")
+  repositoryOwner String
+  repositoryName  String
+  localCachePath  String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  connections     ProjectRepositoryConnection[]
+}
+
+model ProjectRepositoryConnection {
+  id                    String   @id @default(uuid())
+  projectId             String
+  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  provider              ProjectProvider @default(GITHUB)
+  repositoryOwner       String
+  repositoryName        String
+  defaultBranch         String   @default("main")
+  cloneUrl              String?
+  installationReference String?
+  patReference          String?
+  webhookEnabled        Boolean  @default(false)
+  lastSyncedAt          DateTime?
+  syncStatus            SyncStatus @default(PENDING)
+  syncMessage           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model WorkflowTarget {
+  id           String       @id @default(uuid())
+  workspaceId  String
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id])
+  name         String
+  slug         String       @unique
+  description  String?
+  type         String
+  sourceSystem String
+  environment  String
+  status       WorkflowStatus @default(ACTIVE)
+  ownerId      String?
+  tags         String       @default("[]")
+  metadata     String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  archivedAt   DateTime?
+  incidents Incident[]
+  testRuns  TestRun[]
+}
+
+model Incident {
+  id                String           @id @default(uuid())
+  workspaceId       String
+  workspace         Workspace        @relation(fields: [workspaceId], references: [id])
+  workflowTargetId  String
+  workflowTarget    WorkflowTarget   @relation(fields: [workflowTargetId], references: [id])
+  title             String
+  description       String
+  severity          IncidentSeverity
+  priority          String
+  status            IncidentStatus   @default(OPEN)
+  reporterId        String
+  reporter          User             @relation("Reporter", fields: [reporterId], references: [id])
+  assigneeId        String?
+  assignee          User?            @relation("Assignee", fields: [assigneeId], references: [id])
+  rootCause         String?
+  resolutionSummary String?
+  openedAt          DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  closedAt          DateTime?
+  notes IncidentNote[]
+}
+
+model IncidentNote {
+  id         String   @id @default(uuid())
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
+  content    String
+  createdAt  DateTime @default(now())
+}
+
+model TestRun {
+  id               String         @id @default(uuid())
+  workspaceId      String
+  workspace        Workspace      @relation(fields: [workspaceId], references: [id])
+  workflowTargetId String
+  workflowTarget   WorkflowTarget @relation(fields: [workflowTargetId], references: [id])
+  triggeredByUserId String
+  triggeredByUser  User           @relation(fields: [triggeredByUserId], references: [id])
+  type             String
+  status           String
+  result           TestResult?
+  startedAt        DateTime       @default(now())
+  finishedAt       DateTime?
+  durationMs       Int?
+  inputPayload     String?
+  outputPayload    String?
+  normalizedError  String?
+}
+
+model LogEvent {
+  id               String    @id @default(uuid())
+  workspaceId      String
+  workflowTargetId String?
+  incidentId       String?
+  testRunId        String?
+  userId           String?
+  level            LogLevel
+  message          String
+  context          String?
+  timestamp        DateTime  @default(now())
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid())
+  workspaceId String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String
+  entityType  String
+  entityId    String?
+  details     String?
+  createdAt   DateTime @default(now())
+}
