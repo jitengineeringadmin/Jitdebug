@@ -23,18 +23,6 @@ export default function Projects() {
     fetchProjects();
   }, []);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (projects.some(p => p.connections?.[0]?.syncStatus === 'IN_PROGRESS')) {
-      interval = setInterval(() => {
-        api.get("/projects").then((res) => {
-          setProjects(res.data);
-        });
-      }, 2000);
-    }
-    return () => clearInterval(interval);
-  }, [projects]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await api.post("/projects", formData);
@@ -61,14 +49,13 @@ export default function Projects() {
                 <th className="px-6 py-3">Repository</th>
                 <th className="px-6 py-3">Provider</th>
                 <th className="px-6 py-3">Sync Status</th>
-                <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-zinc-500">Loading...</td></tr>
+                <tr><td colSpan={4} className="px-6 py-8 text-center text-zinc-500">Loading...</td></tr>
               ) : projects.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-zinc-500">No projects found.</td></tr>
+                <tr><td colSpan={4} className="px-6 py-8 text-center text-zinc-500">No projects found.</td></tr>
               ) : (
                 projects.map((p) => (
                   <tr key={p.id} className="border-b border-zinc-800 hover:bg-zinc-800/20">
@@ -80,26 +67,9 @@ export default function Projects() {
                         <span className="bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full text-xs">SUCCESS</span>
                       ) : p.connections?.[0]?.syncStatus === 'FAILED' ? (
                         <span className="bg-rose-500/10 text-rose-500 px-2 py-1 rounded-full text-xs">FAILED</span>
-                      ) : p.connections?.[0]?.syncStatus === 'IN_PROGRESS' ? (
-                        <span className="bg-indigo-500/10 text-indigo-500 px-2 py-1 rounded-full text-xs">IN_PROGRESS</span>
                       ) : (
                         <span className="bg-zinc-500/10 text-zinc-500 px-2 py-1 rounded-full text-xs">{p.connections?.[0]?.syncStatus || 'PENDING'}</span>
                       )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Button 
-                        className="bg-zinc-800 hover:bg-zinc-700 text-white text-xs px-2 py-1 h-auto"
-                        onClick={async () => {
-                          try {
-                            await api.post(`/projects/${p.id}/sync`);
-                            fetchProjects();
-                          } catch (e) {
-                            alert("Sync failed to start.");
-                          }
-                        }}
-                      >
-                        Sync
-                      </Button>
                     </td>
                   </tr>
                 ))

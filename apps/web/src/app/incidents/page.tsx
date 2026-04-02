@@ -9,11 +9,7 @@ export default function Incidents() {
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
-  const [selectedIncident, setSelectedIncident] = useState<any>(null);
   const [formData, setFormData] = useState({ title: "", description: "", severity: "HIGH", priority: "P1", workflowTargetId: "" });
-
-  const [loadingAnalysis, setLoadingAnalysis] = useState<string | null>(null);
 
   const fetchIncidents = () => {
     setLoading(true);
@@ -54,14 +50,13 @@ export default function Incidents() {
                 <th className="px-6 py-3">Target</th>
                 <th className="px-6 py-3">Severity</th>
                 <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-zinc-500">Loading...</td></tr>
+                <tr><td colSpan={4} className="px-6 py-8 text-center text-zinc-500">Loading...</td></tr>
               ) : incidents.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-zinc-500">No incidents found.</td></tr>
+                <tr><td colSpan={4} className="px-6 py-8 text-center text-zinc-500">No incidents found.</td></tr>
               ) : (
                 incidents.map((i) => (
                   <tr key={i.id} className="border-b border-zinc-800 hover:bg-zinc-800/20">
@@ -73,35 +68,6 @@ export default function Incidents() {
                       </span>
                     </td>
                     <td className="px-6 py-4">{i.status}</td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <Button 
-                        className="bg-zinc-800 hover:bg-zinc-700 text-white text-xs px-2 py-1 h-auto"
-                        onClick={() => {
-                          setSelectedIncident(i);
-                          setIsNotesModalOpen(true);
-                        }}
-                      >
-                        View Notes
-                      </Button>
-                      <Button 
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2 py-1 h-auto"
-                        disabled={loadingAnalysis === i.id}
-                        onClick={async () => {
-                          try {
-                            setLoadingAnalysis(i.id);
-                            await api.post(`/incidents/${i.id}/analyze`);
-                            alert("Analysis completed and added as a note!");
-                            fetchIncidents();
-                          } catch (e) {
-                            alert("Analysis failed.");
-                          } finally {
-                            setLoadingAnalysis(null);
-                          }
-                        }}
-                      >
-                        {loadingAnalysis === i.id ? 'Analyzing...' : 'AI Analyze'}
-                      </Button>
-                    </td>
                   </tr>
                 ))
               )}
@@ -139,27 +105,6 @@ export default function Incidents() {
             <Button type="submit" className="bg-rose-600 hover:bg-rose-700 text-white">Report</Button>
           </div>
         </form>
-      </Modal>
-
-      <Modal isOpen={isNotesModalOpen} onClose={() => setIsNotesModalOpen(false)} title="Incident Notes">
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          {selectedIncident?.notes?.length > 0 ? (
-            selectedIncident.notes.map((note: any) => (
-              <div key={note.id} className="bg-zinc-950 p-4 rounded-md border border-zinc-800">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-medium text-zinc-400">{note.author?.name || 'System'}</span>
-                  <span className="text-xs text-zinc-500">{new Date(note.createdAt).toLocaleString()}</span>
-                </div>
-                <div className="text-sm text-zinc-300 whitespace-pre-wrap">{note.content}</div>
-              </div>
-            ))
-          ) : (
-            <p className="text-zinc-500 text-sm text-center py-4">No notes found for this incident.</p>
-          )}
-        </div>
-        <div className="mt-4 flex justify-end">
-          <Button onClick={() => setIsNotesModalOpen(false)} className="bg-zinc-800 hover:bg-zinc-700 text-white">Close</Button>
-        </div>
       </Modal>
     </div>
   );

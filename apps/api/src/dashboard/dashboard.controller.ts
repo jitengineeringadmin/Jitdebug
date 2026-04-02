@@ -7,7 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Get()
+  @Get('stats')
   getStats(@Request() req: any) {
     return this.dashboardService.getStats(req.user.workspaceId);
   }

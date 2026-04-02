@@ -49,6 +49,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
     { name: "Incidents", href: "/incidents", icon: AlertCircle },
     { name: "Test Runs", href: "/test-runs", icon: FileText },
     { name: "Logs", href: "/logs", icon: FileText },
+    { name: "Audit", href: "/audit", icon: FileText },
     { name: "Users", href: "/users", icon: Users },
     { name: "Settings", href: "/settings", icon: Settings },
   ];

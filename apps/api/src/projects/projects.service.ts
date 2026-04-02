@@ -62,48 +62,4 @@ export class ProjectsService {
       where: { id },
     });
   }
-
-  async handlePushEvent(projectId: string, payload: any) {
-    // In a real scenario, this would trigger a sync or analysis
-    console.log(`Received push event for project ${projectId}`, payload.ref);
-    
-    // Update last synced
-    await this.prisma.projectRepositoryConnection.updateMany({
-      where: { projectId },
-      data: { 
-        lastSyncedAt: new Date(),
-        syncStatus: SyncStatus.SUCCESS
-      }
-    });
-  }
-
-  async handlePullRequestEvent(projectId: string, payload: any) {
-    console.log(`Received PR event for project ${projectId}`, payload.action);
-    // Trigger PR analysis
-  }
-
-  async syncProject(workspaceId: string, id: string) {
-    const project = await this.findOne(workspaceId, id);
-    
-    // Simulate a sync process
-    await this.prisma.projectRepositoryConnection.updateMany({
-      where: { projectId: project.id },
-      data: { syncStatus: SyncStatus.IN_PROGRESS }
-    });
-
-    // Simulate delay
-    setTimeout(async () => {
-      const success = Math.random() > 0.2; // 80% success rate
-      await this.prisma.projectRepositoryConnection.updateMany({
-        where: { projectId: project.id },
-        data: { 
-          syncStatus: success ? SyncStatus.SUCCESS : SyncStatus.FAILED,
-          lastSyncedAt: new Date(),
-          syncMessage: success ? 'Synced successfully' : 'Failed to connect to repository'
-        }
-      });
-    }, 2000);
-
-    return { message: 'Sync started' };
-  }
 }

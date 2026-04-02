@@ -7,42 +7,58 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() body: any, @Response({ passthrough: true }) res: any) {
-    const { accessToken, refreshToken, user } = await this.authService.login(body.email, body.password);
+  async login(@Body() body: any, @Response() res: any) {
+    const user = await this.authService.validateUser(body.email, body.password);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    const result = await this.authService.login(user);
     
-    res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/' });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/' });
-    
-    return user;
+    res.cookie('refresh_token', result.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.send({
+      access_token: result.access_token,
+      user: result.user,
+    });
   }
 
   @Post('refresh')
-  async refresh(@Request() req: any, @Response({ passthrough: true }) res: any) {
-    const refreshToken = req.cookies?.refreshToken;
-    if (!refreshToken) throw new UnauthorizedException('No refresh token');
+  async refresh(@Request() req: any, @Response() res: any) {
+    const token = req.cookies?.refresh_token || req.body.refresh_token;
+    if (!token) throw new UnauthorizedException();
 
-    const tokens = await this.authService.refresh(refreshToken);
-    
-    res.cookie('accessToken', tokens.accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/' });
-    res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/' });
-    
-    return { success: true };
+    const result = await this.authService.refresh(token);
+
+    res.cookie('refresh_token', result.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.send({
+      access_token: result.access_token,
+    });
   }
 
   @Post('logout')
-  async logout(@Request() req: any, @Response({ passthrough: true }) res: any) {
-    const refreshToken = req.cookies?.refreshToken;
-    await this.authService.logout(refreshToken);
-    
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-    
-    return { success: true };
+  async logout(@Request() req: any, @Response() res: any) {
+    const token = req.cookies?.refresh_token || req.body.refresh_token;
+    if (token) {
+      await this.authService.logout(token);
+    }
+    res.clearCookie('refresh_token');
+    return res.send({ message: 'Logged out' });
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
-  getProfile(@Request() req: any) {
+  getProfile(@Request() req) {
     return req.user;
   }
 }

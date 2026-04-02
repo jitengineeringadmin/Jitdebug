@@ -10,7 +10,6 @@ export default function TestRuns() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState("");
-  const [selectedType, setSelectedType] = useState("PING");
 
   const fetchTestRuns = () => {
     setLoading(true);
@@ -25,21 +24,9 @@ export default function TestRuns() {
     api.get("/workflows").then((res) => setWorkflows(res.data));
   }, []);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (testRuns.some(t => t.status === 'RUNNING')) {
-      interval = setInterval(() => {
-        api.get("/test-runs").then((res) => {
-          setTestRuns(res.data);
-        });
-      }, 2000);
-    }
-    return () => clearInterval(interval);
-  }, [testRuns]);
-
   const handleRunTest = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/test-runs", { workflowTargetId: selectedWorkflowId, type: selectedType });
+    await api.post("/test-runs", { workflowTargetId: selectedWorkflowId, type: "DIAGNOSTIC" });
     setIsModalOpen(false);
     fetchTestRuns();
   };
@@ -109,19 +96,6 @@ export default function TestRuns() {
               {workflows.map(w => (
                 <option key={w.id} value={w.id}>{w.name}</option>
               ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm text-zinc-400">Test Type</label>
-            <select 
-              required 
-              value={selectedType} 
-              onChange={e => setSelectedType(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="PING">Ping Test</option>
-              <option value="API_TEST">API Test Suite</option>
-              <option value="E2E_TEST">E2E Test Suite</option>
             </select>
           </div>
           <div className="flex justify-end space-x-2 pt-4">

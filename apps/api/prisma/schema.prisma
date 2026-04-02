@@ -71,6 +71,7 @@ model Workspace {
   incidents Incident[]
   testRuns  TestRun[]
   projects  Project[]
+  auditLogs AuditLog[]
 }
 
 model User {
@@ -89,7 +90,7 @@ model User {
   assignedIncidents Incident[] @relation("Assignee")
   incidentNotes IncidentNote[]
   testRuns      TestRun[]
-  auditEvents   AuditEvent[]
+  auditLogs     AuditLog[]
 }
 
 model RefreshToken {
@@ -106,7 +107,7 @@ model Project {
   workspaceId     String
   workspace       Workspace @relation(fields: [workspaceId], references: [id])
   name            String
-  slug            String   @unique
+  slug            String
   description     String?
   status          String   @default("ACTIVE")
   provider        ProjectProvider @default(GITHUB)
@@ -118,6 +119,8 @@ model Project {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   connections     ProjectRepositoryConnection[]
+
+  @@unique([workspaceId, slug])
 }
 
 model ProjectRepositoryConnection {
@@ -144,7 +147,7 @@ model WorkflowTarget {
   workspaceId  String
   workspace    Workspace    @relation(fields: [workspaceId], references: [id])
   name         String
-  slug         String       @unique
+  slug         String
   description  String?
   type         String
   sourceSystem String
@@ -158,6 +161,8 @@ model WorkflowTarget {
   archivedAt   DateTime?
   incidents Incident[]
   testRuns  TestRun[]
+
+  @@unique([workspaceId, slug])
 }
 
 model Incident {
@@ -225,14 +230,16 @@ model LogEvent {
   timestamp        DateTime  @default(now())
 }
 
-model AuditEvent {
+model AuditLog {
   id          String   @id @default(uuid())
   workspaceId String
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
   action      String
   entityType  String
   entityId    String?
   details     String?
+  ipAddress   String?
   createdAt   DateTime @default(now())
 }

@@ -8,6 +8,7 @@ import { LogsModule } from './logs/logs.module';
 import { UsersModule } from './users/users.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ProjectsModule } from './projects/projects.module';
+import { AuditModule } from './audit/audit.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -20,6 +21,7 @@ import { HealthModule } from './health/health.module';
     UsersModule,
     DashboardModule,
     ProjectsModule,
+    AuditModule,
     HealthModule,
   ],
   providers: [PrismaService],

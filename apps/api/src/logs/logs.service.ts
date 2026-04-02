@@ -6,10 +6,6 @@ export class LogsService {
   constructor(private prisma: PrismaService) {}
 
   findAll(workspaceId: string) {
-    return this.prisma.logEvent.findMany({
-      where: { workspaceId },
-      orderBy: { timestamp: 'desc' },
-      take: 100,
-    });
+    return this.prisma.logEvent.findMany({ where: { workspaceId }, orderBy: { timestamp: 'desc' }, take: 100 });
   }
 }

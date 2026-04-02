@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { SidebarLayout } from "@/src/components/SidebarLayout";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
   title: "JIT Debug",
-  description: "B2B SaaS Debug & Incident Management",
+  description: "B2B SaaS Debugging Platform",
 };
 
 export default function RootLayout({
@@ -17,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-zinc-950 text-zinc-50 min-h-screen`}>
+      <body>
         <SidebarLayout>{children}</SidebarLayout>
       </body>
     </html>

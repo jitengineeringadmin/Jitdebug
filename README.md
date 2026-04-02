@@ -1,53 +1,81 @@
 # JIT Debug
 
-JIT Debug is a professional B2B SaaS platform for managing debug workflows, incidents, test runs, and system logs.
+Professional B2B SaaS Debugging & Incident Management Platform.
 
 ## Architecture
 
-This project is structured as a **monorepo** using npm workspaces.
+- **Backend**: NestJS (apps/api)
+- **Frontend**: Next.js (apps/web)
+- **Shared**: TypeScript Types & Enums (packages/shared)
+- **Database**: PostgreSQL with Prisma ORM
 
-- **`apps/api`**: NestJS backend. Provides RESTful APIs, handles authentication, and connects to PostgreSQL via Prisma.
-- **`apps/web`**: Next.js 15 App Router frontend. Provides the user interface, styled with Tailwind CSS and shadcn/ui.
-- **`packages/shared`**: Shared TypeScript definitions, enums, and DTOs used by both frontend and backend.
+## Features
 
-## Prerequisites
+- **Multi-tenant Workspace Isolation**: All data is strictly isolated by `workspaceId`.
+- **Professional Auth**: JWT with Refresh Tokens (persisted in DB), HttpOnly cookies, and RBAC.
+- **Project Management**: GitHub-centric project tracking with sync status.
+- **Incident Management**: Severity-based incident tracking with notes and AI-ready hooks.
+- **Workflow Monitoring**: Track debug targets across different systems and environments.
+- **Audit Trail**: Full administrative and security logging.
+- **Health Monitoring**: Real-time service status.
 
-- Node.js (v20+)
-- Docker & Docker Compose (for PostgreSQL)
+## Getting Started
 
-## Local Development Setup
+### Prerequisites
 
-1. **Start the database**
-   ```bash
-   docker-compose up -d
-   ```
+- Node.js >= 20
+- pnpm
+- Docker (for PostgreSQL)
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+### Installation
 
-3. **Build shared packages**
-   ```bash
-   npm run build -w packages/shared
-   ```
+```bash
+pnpm install
+```
 
-4. **Apply database migrations and seed data**
-   ```bash
-   npm run prisma:migrate
-   npm run seed
-   ```
+### Database Setup
 
-5. **Start the development servers**
-   ```bash
-   npm run dev
-   ```
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001/api
+1. Start PostgreSQL:
+```bash
+docker-compose up -d
+```
+
+2. Run migrations:
+```bash
+pnpm prisma:migrate
+```
+
+3. Seed the database:
+```bash
+pnpm seed
+```
+
+### Development
+
+```bash
+pnpm dev
+```
+
+- API: http://localhost:3000
+- Web: http://localhost:3001
 
 ## Seed Credentials
 
-The database is seeded with the following users (password for all is `password123`):
-- `super@jitdebug.com` (Super Admin)
-- `admin@jitdebug.com` (Admin)
-- `analyst@jitdebug.com` (Analyst)
+| Role | Email | Password |
+|------|-------|----------|
+| Super Admin | superadmin@jitdebug.com | password123 |
+| Admin | admin@jitdebug.com | password123 |
+| Analyst | analyst@jitdebug.com | password123 |
+
+## Checklist
+
+- [x] pnpm Workspaces
+- [x] PostgreSQL Integration
+- [x] JWT + Refresh Token Auth
+- [x] Workspace Isolation
+- [x] Projects Module (GitHub-centric)
+- [x] Settings Module
+- [x] Audit Module
+- [x] Health Module
+- [x] Comprehensive Seed
+- [x] Professional UI (Tailwind + Dark Mode)

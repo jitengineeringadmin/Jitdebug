@@ -1,14 +1,17 @@
 version: '3.8'
+
 services:
-  db:
+  postgres:
     image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: jitdebug
+    container_name: jitdebug-postgres
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jitdebug
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+
 volumes:
-  pgdata:
+  postgres_data:

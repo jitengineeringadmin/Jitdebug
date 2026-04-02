@@ -31,9 +31,4 @@ export class IncidentsController {
   addNote(@Param('id') id: string, @Body() body: any, @Request() req: any) {
     return this.incidentsService.addNote(id, body.content, req.user.userId, req.user.workspaceId);
   }
-
-  @Post(':id/analyze')
-  analyze(@Param('id') id: string, @Request() req: any) {
-    return this.incidentsService.analyze(id, req.user.workspaceId, req.user.userId);
-  }
 }
